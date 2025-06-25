@@ -73,7 +73,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'SocialMediaAPI.wsgi.application'
+WSGI_APPLICATION = 'PPM_BackEnd_Project.wsgi.application'
 
 
 # Database
