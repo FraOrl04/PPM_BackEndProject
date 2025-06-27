@@ -58,3 +58,22 @@ class AdminSelfView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
+
+class ProfileView(APIView):
+    """
+    Vista per gestire il profilo dell'utente corrente
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """Ottieni il profilo dell'utente corrente"""
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        """Aggiorna il profilo dell'utente corrente"""
+        serializer = ProfileUpdateSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

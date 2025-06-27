@@ -1,224 +1,349 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useNavigate, useParams } from "react-router-dom"
-import { useLocation } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+
+// Loading Spinner Component
+const LoadingSpinner = () => (
+  <div className="loading-container">
+    <div className="spinner"></div>
+    <p>Caricamento profilo...</p>
+  </div>
+)
+
+// User Avatar Component
+const UserAvatar = ({ username, size = "lg" }) => {
+  const sizes = {
+    sm: "40px",
+    md: "60px",
+    lg: "120px",
+    xl: "150px",
+  }
+
+  return (
+    <div
+      className="user-avatar"
+      style={{
+        width: sizes[size],
+        height: sizes[size],
+        background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
+        fontSize: size === "xl" ? "4rem" : size === "lg" ? "3rem" : "1.5rem",
+      }}
+    >
+      {username?.charAt(0).toUpperCase() || "U"}
+    </div>
+  )
+}
+
+// Stats Card Component
+const StatsCard = ({ icon, label, value, color }) => (
+  <div className="stats-card" style={{ borderLeft: `4px solid ${color}` }}>
+    <div className="stats-icon" style={{ color }}>
+      {icon}
+    </div>
+    <div className="stats-content">
+      <div className="stats-value">{value}</div>
+      <div className="stats-label">{label}</div>
+    </div>
+  </div>
+)
+
+// Post Card Component for Profile
+const ProfilePostCard = ({ post, onDelete }) => {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div className="profile-post-card">
+      <div className="post-header">
+        <div className="post-date">
+          {post.created_at ? new Date(post.created_at).toLocaleDateString("it-IT") : "Data non disponibile"}
+        </div>
+        <button onClick={() => onDelete(post.id)} className="delete-post-btn" title="Elimina post">
+          🗑️
+        </button>
+      </div>
+
+      <div className="post-content">
+        <p className={expanded ? "" : "truncate"} onClick={() => setExpanded(!expanded)}>
+          {post.content}
+        </p>
+        {post.content.length > 100 && (
+          <button className="read-more-btn" onClick={() => setExpanded(!expanded)}>
+            {expanded ? "Mostra meno" : "Leggi tutto"}
+          </button>
+        )}
+      </div>
+
+      {post.image && (
+        <div className="post-image-container">
+          <img src={post.image || "/placeholder.svg"} alt="post" className="post-image" />
+        </div>
+      )}
+
+      <div className="post-stats">
+        <span>❤️ {post.likes_count || 0}</span>
+        <span>💬 {post.comments?.length || 0}</span>
+      </div>
+    </div>
+  )
+}
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null)
-  const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState({
-    bio: "",
-    profile_picture: null,
-    website: ""
-  })
+  const [userPosts, setUserPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [posts, setPosts] = useState([])
+  const [isEditing, setIsEditing] = useState(false)
+  const [editForm, setEditForm] = useState({
+    bio: "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
+  const [activeTab, setActiveTab] = useState("info")
+  const [updateLoading, setUpdateLoading] = useState(false)
 
-  const { username } = useParams()
   const navigate = useNavigate()
-  const location = useLocation()
   const token = localStorage.getItem("access")
 
-  // User info from token
-  const payload = token ? JSON.parse(atob(token.split(".")[1])) : null
-  const loggedUserId = payload?.user_id
-  const isCurrentUser = username === payload?.username
-
-  // Fetch profile data
+  // Redirect if not authenticated
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch(`http://localhost:8000/api/accounts/${username}/`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-
-        if (!response.ok) throw new Error("Profilo non trovato")
-        const data = await response.json()
-        setProfile(data)
-        setFormData({
-          bio: data.bio || "",
-          website: data.website || "",
-          profile_picture: null
-        })
-
-        // Fetch user's posts
-        const postsResponse = await fetch(`http://localhost:8000/api/posts/?author=${data.id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-        if (postsResponse.ok) {
-          const postsData = await postsResponse.json()
-          setPosts(postsData)
-        }
-
-      } catch (err) {
-        console.error(err)
-        setError(err.message)
-        navigate("/home")
-      } finally {
-        setLoading(false)
-      }
+    if (!token) {
+      navigate("/")
+      return
     }
+  }, [token, navigate])
 
-    if (token) fetchProfile()
-    else navigate("/")
-  }, [username, token, navigate])
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
-
-  const handleFileChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setFormData(prev => ({ ...prev, profile_picture: e.target.files[0] }))
-    }
-  }
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
+  // Fetch user profile
+  const fetchProfile = async () => {
     try {
-      const formDataToSend = new FormData()
-      formDataToSend.append("bio", formData.bio)
-      formDataToSend.append("website", formData.website)
-      if (formData.profile_picture) {
-        formDataToSend.append("profile_picture", formData.profile_picture)
-      }
-
-      const response = await fetch(`http://localhost:8000/api/accounts/${username}/`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: formDataToSend
+      const response = await fetch("http://localhost:8000/api/accounts/profile/", {
+        headers: { Authorization: `Bearer ${token}` },
       })
-
-      if (!response.ok) throw new Error("Errore durante l'aggiornamento")
-
-      const updatedData = await response.json()
-      setProfile(updatedData)
-      setIsEditing(false)
-      // Refresh the page to show updated data
-      window.location.reload()
-
+      if (!response.ok) throw new Error("Errore nel caricamento del profilo")
+      const data = await response.json()
+      setProfile(data)
+      setEditForm((prev) => ({ ...prev, bio: data.bio || "" }))
     } catch (err) {
       console.error(err)
-      setError("Errore durante il salvataggio")
+      setError(err.message)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Caricamento profilo...</p>
-      </div>
-    )
+  // Fetch user posts
+  const fetchUserPosts = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/posts/my-posts/", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (!response.ok) throw new Error("Errore nel caricamento dei post")
+      const data = await response.json()
+      setUserPosts(Array.isArray(data) ? data : [])
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
   }
+
+  // Update profile
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault()
+    setUpdateLoading(true)
+
+    try {
+      const updateData = { bio: editForm.bio }
+
+      // Update bio
+      const response = await fetch("http://localhost:8000/api/accounts/profile/", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updateData),
+      })
+
+      if (!response.ok) throw new Error("Errore nell'aggiornamento del profilo")
+
+      // Update password if provided
+      if (editForm.newPassword && editForm.currentPassword) {
+        if (editForm.newPassword !== editForm.confirmPassword) {
+          throw new Error("Le password non coincidono")
+        }
+
+        const passwordResponse = await fetch("http://localhost:8000/api/accounts/change-password/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            current_password: editForm.currentPassword,
+            new_password: editForm.newPassword,
+          }),
+        })
+
+        if (!passwordResponse.ok) {
+          const errorData = await passwordResponse.json()
+          throw new Error(errorData.detail || "Errore nel cambio password")
+        }
+      }
+
+      await fetchProfile()
+      setIsEditing(false)
+      setEditForm((prev) => ({
+        ...prev,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      }))
+      alert("Profilo aggiornato con successo!")
+    } catch (err) {
+      console.error(err)
+      alert(err.message)
+    } finally {
+      setUpdateLoading(false)
+    }
+  }
+
+  // Delete post
+  const handleDeletePost = async (postId) => {
+    if (!window.confirm("Vuoi davvero eliminare questo post?")) return
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/posts/${postId}/`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (response.ok) {
+        setUserPosts(userPosts.filter((p) => p.id !== postId))
+      } else {
+        alert("Errore durante l'eliminazione del post")
+      }
+    } catch (err) {
+      console.error(err)
+      alert("Errore durante l'eliminazione del post")
+    }
+  }
+
+  // Initialize data
+  useEffect(() => {
+    if (token) {
+      Promise.all([fetchProfile(), fetchUserPosts()])
+    }
+  }, [token])
+
+  if (loading) return <LoadingSpinner />
 
   if (error) {
     return (
       <div className="error-container">
         <h2>❌ Errore</h2>
         <p>{error}</p>
+        <button onClick={() => navigate("/home")} className="back-btn">
+          🏠 Torna alla Home
+        </button>
       </div>
     )
   }
 
   return (
-    <div className="profile-page-container">
+    <div className="profile-container">
       <style>
         {`
-          .profile-page-container {
-            max-width: 1200px;
-            margin: 0 auto;
+          :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --light: #f8fafc;
+            --dark: #1e293b;
+            --gray: #64748b;
+            --light-gray: #e2e8f0;
+          }
+          
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          }
+          
+          body {
+            background-color: #f1f5f9;
+            color: var(--dark);
+          }
+          
+          .profile-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #10b981 100%);
             padding: 20px;
           }
           
-          .profile-header {
+          /* Animations */
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          
+          @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+          
+          @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+          }
+          
+          .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+          }
+          
+          .slide-in {
+            animation: slideIn 0.5s ease-out forwards;
+          }
+          
+          /* Loading */
+          .loading-container {
             display: flex;
-            gap: 40px;
+            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            margin-bottom: 40px;
-            background: white;
-            padding: 30px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            height: 100vh;
+            color: white;
           }
           
-          .profile-avatar {
-            width: 150px;
-            height: 150px;
+          .loading-container .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
             border-radius: 50%;
-            object-fit: cover;
-            border: 5px solid #f1f5f9;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
           }
           
-          .profile-info {
-            flex: 1;
-          }
-          
-          .profile-name {
-            font-size: 2rem;
-            margin: 0 0 10px 0;
-            color: #1e293b;
-          }
-          
-          .profile-username {
-            font-size: 1.2rem;
-            color: #64748b;
-            margin: 0 0 20px 0;
-          }
-          
-          .profile-bio {
-            font-size: 1rem;
-            line-height: 1.6;
-            color: #334155;
-            margin-bottom: 15px;
-          }
-          
-          .profile-website a {
-            color: #6366f1;
-            text-decoration: none;
-            font-weight: 500;
-          }
-          
-          .profile-website a:hover {
-            text-decoration: underline;
-          }
-          
-          .profile-stats {
+          /* Error */
+          .error-container {
             display: flex;
-            gap: 30px;
-            margin-top: 20px;
-          }
-          
-          .stat-item {
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: white;
             text-align: center;
           }
           
-          .stat-number {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #6366f1;
-          }
-          
-          .stat-label {
-            font-size: 0.9rem;
-            color: #64748b;
-          }
-          
-          .profile-actions {
+          .back-btn {
             margin-top: 20px;
-            display: flex;
-            gap: 15px;
-          }
-          
-          .edit-btn, .save-btn, .cancel-btn {
-            padding: 10px 20px;
+            padding: 12px 24px;
+            background: rgba(255,255,255,0.2);
+            color: white;
             border: none;
             border-radius: 25px;
             cursor: pointer;
@@ -226,270 +351,654 @@ export default function ProfilePage() {
             transition: all 0.3s ease;
           }
           
-          .edit-btn, .save-btn {
-            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+          .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+          }
+          
+          /* Header */
+          .profile-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+          }
+          
+          .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+          }
+          
+          .back-to-home {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
           }
           
-          .cancel-btn {
-            background: #e2e8f0;
-            color: #64748b;
-          }
-          
-          .edit-btn:hover, .save-btn:hover {
+          .back-to-home:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
           }
           
-          .cancel-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+          .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 30px;
           }
           
-          .profile-posts {
-            margin-top: 40px;
+          .user-avatar {
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+            flex-shrink: 0;
           }
           
-          .profile-posts h2 {
-            font-size: 1.5rem;
+          .profile-details h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+          }
+          
+          .profile-details p {
+            color: var(--gray);
+            font-size: 1.1rem;
+            line-height: 1.6;
             margin-bottom: 20px;
-            color: #1e293b;
           }
           
+          .edit-profile-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          
+          .edit-profile-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+          }
+          
+          /* Stats */
+          .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+          }
+          
+          .stats-card {
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+          }
+          
+          .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+          }
+          
+          .stats-icon {
+            font-size: 2rem;
+          }
+          
+          .stats-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--dark);
+          }
+          
+          .stats-label {
+            color: var(--gray);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.5px;
+          }
+          
+          /* Main Content */
+          .profile-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            overflow: hidden;
+          }
+          
+          /* Tabs */
+          .profile-tabs {
+            display: flex;
+            background: rgba(248, 250, 252, 0.8);
+            border-bottom: 1px solid var(--light-gray);
+          }
+          
+          .tab-button {
+            flex: 1;
+            padding: 20px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--gray);
+            transition: all 0.3s ease;
+            position: relative;
+          }
+          
+          .tab-button.active {
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+          }
+          
+          .tab-button.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+          }
+          
+          .tab-button:hover:not(.active) {
+            background: rgba(99, 102, 241, 0.02);
+            color: var(--primary);
+          }
+          
+          /* Tab Content */
+          .tab-content {
+            padding: 30px;
+          }
+          
+          /* Edit Form */
           .edit-form {
-            width: 100%;
+            max-width: 600px;
           }
           
           .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
           }
           
           .form-group label {
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #334155;
+            color: var(--dark);
           }
           
-          .form-group textarea, .form-group input[type="text"], .form-group input[type="url"] {
+          .form-group input,
+          .form-group textarea {
             width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
+            padding: 15px;
+            border: 2px solid var(--light-gray);
             border-radius: 12px;
-            font-size: 1rem;
+            font-size: 16px;
             transition: all 0.3s ease;
+            background: rgba(248, 250, 252, 0.5);
+          }
+          
+          .form-group input:focus,
+          .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+            background: white;
           }
           
           .form-group textarea {
-            min-height: 120px;
+            min-height: 100px;
             resize: vertical;
           }
           
-          .form-group textarea:focus, .form-group input:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+          .password-section {
+            background: rgba(248, 250, 252, 0.5);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            border: 1px solid var(--light-gray);
           }
           
-          .file-upload {
-            margin-top: 20px;
+          .password-section h3 {
+            margin-bottom: 20px;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
           }
           
-          .file-upload-label {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #f1f5f9;
-            border-radius: 25px;
+          .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+          }
+          
+          .save-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
             cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          
+          .save-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+          }
+          
+          .save-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+          
+          .cancel-btn {
+            padding: 15px 30px;
+            background: var(--light-gray);
+            color: var(--dark);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
             transition: all 0.3s ease;
           }
           
-          .file-upload-label:hover {
-            background: #e2e8f0;
+          .cancel-btn:hover {
+            background: #cbd5e1;
+            transform: translateY(-2px);
           }
           
-          .empty-posts {
-            text-align: center;
-            padding: 40px 20px;
+          /* Posts Grid */
+          .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+          }
+          
+          .profile-post-card {
+            background: rgba(248, 250, 252, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid var(--light-gray);
+            transition: all 0.3s ease;
+          }
+          
+          .profile-post-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1);
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
           }
           
-          .empty-posts p {
-            color: #64748b;
+          .post-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+          }
+          
+          .post-date {
+            color: var(--gray);
+            font-size: 0.9rem;
+            font-weight: 500;
+          }
+          
+          .delete-post-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            color: var(--danger);
+          }
+          
+          .delete-post-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            transform: scale(1.1);
+          }
+          
+          .post-content p {
+            color: var(--dark);
+            line-height: 1.6;
+            margin-bottom: 10px;
+          }
+          
+          .truncate {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+          
+          .read-more-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+          }
+          
+          .post-image-container {
+            margin: 15px 0;
+          }
+          
+          .post-image {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+          }
+          
+          .post-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid var(--light-gray);
+            color: var(--gray);
+            font-size: 0.9rem;
+          }
+          
+          /* Empty State */
+          .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray);
+          }
+          
+          .empty-state div:first-child {
+            font-size: 4rem;
+            margin-bottom: 20px;
+          }
+          
+          .empty-state p {
             font-size: 1.1rem;
+            margin-bottom: 10px;
           }
           
+          /* Profile Info Display */
+          .profile-info-display > div {
+            display: grid;
+            gap: 20px;
+            max-width: 600px;
+          }
+          
+          .profile-info-display > div > div {
+            padding: 20px;
+            background: rgba(248, 250, 252, 0.5);
+            border-radius: 15px;
+          }
+          
+          .profile-info-display h3 {
+            margin-bottom: 10px;
+            color: var(--dark);
+          }
+          
+          .profile-info-display p {
+            font-size: 1.1rem;
+            font-weight: 600;
+          }
+          
+          /* Responsive */
           @media (max-width: 768px) {
-            .profile-header {
+            .profile-container {
+              padding: 10px;
+            }
+            
+            .profile-info {
               flex-direction: column;
               text-align: center;
               gap: 20px;
             }
             
-            .profile-stats {
-              justify-content: center;
+            .profile-details h1 {
+              font-size: 2rem;
             }
             
-            .profile-actions {
-              justify-content: center;
+            .profile-stats {
+              grid-template-columns: 1fr;
+            }
+            
+            .profile-tabs {
+              flex-direction: column;
+            }
+            
+            .posts-grid {
+              grid-template-columns: 1fr;
+            }
+            
+            .header-top {
+              flex-direction: column;
+              gap: 15px;
             }
           }
         `}
       </style>
 
-      {profile && (
-        <>
-          <div className="profile-header">
-            <div>
-              {isEditing ? (
-                <div className="file-upload">
-                  <label htmlFor="profile-picture-upload" className="file-upload-label">
-                    {formData.profile_picture ? "Cambia immagine" : "Carica immagine"}
-                  </label>
-                  <input
-                    id="profile-picture-upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    style={{ display: 'none' }}
-                  />
-                  {formData.profile_picture ? (
-                    <img
-                      src={URL.createObjectURL(formData.profile_picture)}
-                      alt="Preview"
-                      className="profile-avatar"
-                    />
-                  ) : (
-                    <img
-                      src={profile.profile_picture || "/default-avatar.png"}
-                      alt={profile.username}
-                      className="profile-avatar"
-                    />
-                  )}
-                </div>
-              ) : (
-                <img
-                  src={profile.profile_picture || "/default-avatar.png"}
-                  alt={profile.username}
-                  className="profile-avatar"
-                />
-              )}
+      <div className="profile-header fade-in">
+        <div className="header-top">
+          <h2
+            style={{
+              fontSize: "1.5rem",
+              fontWeight: "800",
+              background: "linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            👤 Il Mio Profilo
+          </h2>
+          <button onClick={() => navigate("/home")} className="back-to-home">
+            🏠 Torna alla Home
+          </button>
+        </div>
+
+        {profile && (
+          <>
+            <div className="profile-info slide-in">
+              <UserAvatar username={profile.username} size="xl" />
+              <div className="profile-details">
+                <h1>@{profile.username}</h1>
+                <p>{profile.bio || "Nessuna biografia disponibile."}</p>
+                <button onClick={() => setIsEditing(!isEditing)} className="edit-profile-btn">
+                  ✏️ {isEditing ? "Annulla Modifica" : "Modifica Profilo"}
+                </button>
+              </div>
             </div>
 
-            <div className="profile-info">
+            <div className="profile-stats slide-in">
+              <StatsCard icon="📝" label="Post" value={userPosts.length} color="var(--primary)" />
+              <StatsCard icon="👥" label="Follower" value={profile.followers?.length || 0} color="var(--success)" />
+              <StatsCard icon="➕" label="Following" value={profile.following?.length || 0} color="var(--warning)" />
+              <StatsCard icon="📧" label="Email" value={profile.email ? "✓" : "✗"} color="var(--info)" />
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="profile-content fade-in">
+        <div className="profile-tabs">
+          <button className={`tab-button ${activeTab === "info" ? "active" : ""}`} onClick={() => setActiveTab("info")}>
+            📋 Informazioni
+          </button>
+          <button
+            className={`tab-button ${activeTab === "posts" ? "active" : ""}`}
+            onClick={() => setActiveTab("posts")}
+          >
+            📝 I Miei Post ({userPosts.length})
+          </button>
+        </div>
+
+        <div className="tab-content">
+          {activeTab === "info" && (
+            <div className="slide-in">
               {isEditing ? (
-                <form className="edit-form" onSubmit={handleSubmit}>
+                <form onSubmit={handleUpdateProfile} className="edit-form">
                   <div className="form-group">
-                    <label htmlFor="bio">Bio</label>
+                    <label htmlFor="username">Username</label>
+                    <input
+                      type="text"
+                      id="username"
+                      value={profile?.username || ""}
+                      disabled
+                      style={{ opacity: 0.6, cursor: "not-allowed" }}
+                    />
+                    <small style={{ color: "var(--gray)", fontSize: "0.8rem" }}>
+                      Il username non può essere modificato
+                    </small>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="email">Email</label>
+                    <input
+                      type="email"
+                      id="email"
+                      value={profile?.email || ""}
+                      disabled
+                      style={{ opacity: 0.6, cursor: "not-allowed" }}
+                    />
+                    <small style={{ color: "var(--gray)", fontSize: "0.8rem" }}>
+                      L'email non può essere modificata
+                    </small>
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="bio">Biografia</label>
                     <textarea
                       id="bio"
-                      name="bio"
-                      value={formData.bio}
-                      onChange={handleInputChange}
+                      value={editForm.bio}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, bio: e.target.value }))}
+                      placeholder="Racconta qualcosa di te..."
+                      maxLength={500}
                     />
+                    <small style={{ color: "var(--gray)", fontSize: "0.8rem" }}>
+                      {editForm.bio.length}/500 caratteri
+                    </small>
                   </div>
 
-                  <div className="form-group">
-                    <label htmlFor="website">Sito Web</label>
-                    <input
-                      type="url"
-                      id="website"
-                      name="website"
-                      value={formData.website}
-                      onChange={handleInputChange}
-                      placeholder="https://example.com"
-                    />
+                  <div className="password-section">
+                    <h3>🔒 Cambia Password</h3>
+                    <div className="form-group">
+                      <label htmlFor="currentPassword">Password Attuale</label>
+                      <input
+                        type="password"
+                        id="currentPassword"
+                        value={editForm.currentPassword}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, currentPassword: e.target.value }))}
+                        placeholder="Inserisci la password attuale"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="newPassword">Nuova Password</label>
+                      <input
+                        type="password"
+                        id="newPassword"
+                        value={editForm.newPassword}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, newPassword: e.target.value }))}
+                        placeholder="Inserisci la nuova password"
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label htmlFor="confirmPassword">Conferma Nuova Password</label>
+                      <input
+                        type="password"
+                        id="confirmPassword"
+                        value={editForm.confirmPassword}
+                        onChange={(e) => setEditForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                        placeholder="Conferma la nuova password"
+                      />
+                    </div>
                   </div>
 
-                  <div className="profile-actions">
-                    <button type="submit" className="save-btn">
-                      💾 Salva modifiche
+                  <div className="form-actions">
+                    <button type="submit" className="save-btn" disabled={updateLoading}>
+                      {updateLoading ? "⏳ Salvando..." : "💾 Salva Modifiche"}
                     </button>
-                    <button
-                      type="button"
-                      className="cancel-btn"
-                      onClick={() => setIsEditing(false)}
-                    >
+                    <button type="button" onClick={() => setIsEditing(false)} className="cancel-btn">
                       ❌ Annulla
                     </button>
                   </div>
                 </form>
               ) : (
-                <>
-                  <h1 className="profile-name">{profile.first_name || profile.username}</h1>
-                  <h2 className="profile-username">@{profile.username}</h2>
-
-                  {profile.bio && <p className="profile-bio">{profile.bio}</p>}
-
-                  {profile.website && (
-                    <p className="profile-website">
-                      <a href={profile.website} target="_blank" rel="noopener noreferrer">
-                        {profile.website}
-                      </a>
-                    </p>
-                  )}
-
-                  <div className="profile-stats">
-                    <div className="stat-item">
-                      <div className="stat-number">{profile.posts_count || 0}</div>
-                      <div className="stat-label">Post</div>
+                <div className="profile-info-display">
+                  <div>
+                    <div>
+                      <h3>👤 Username</h3>
+                      <p>@{profile?.username}</p>
                     </div>
-                    <div className="stat-item">
-                      <div className="stat-number">{profile.followers_count || 0}</div>
-                      <div className="stat-label">Follower</div>
+
+                    <div>
+                      <h3>📧 Email</h3>
+                      <p>{profile?.email}</p>
                     </div>
-                    <div className="stat-item">
-                      <div className="stat-number">{profile.following_count || 0}</div>
-                      <div className="stat-label">Seguiti</div>
+
+                    <div>
+                      <h3>📝 Biografia</h3>
+                      <p style={{ lineHeight: "1.6" }}>{profile?.bio || "Nessuna biografia disponibile."}</p>
                     </div>
                   </div>
-
-                  {isCurrentUser && (
-                    <div className="profile-actions">
-                      <button
-                        className="edit-btn"
-                        onClick={() => setIsEditing(true)}
-                      >
-                        ✏️ Modifica profilo
-                      </button>
-                    </div>
-                  )}
-                </>
+                </div>
               )}
             </div>
-          </div>
+          )}
 
-          <div className="profile-posts">
-            <h2>Post di @{profile.username}</h2>
-
-            {posts.length > 0 ? (
-              <div className="posts-grid">
-                {posts.map(post => (
-                  <div key={post.id} className="post-card">
-                    {post.image && (
-                      <img
-                        src={post.image}
-                        alt="Post"
-                        className="post-image"
-                        onClick={() => navigate(`/post/${post.id}`)}
-                      />
-                    )}
-                    <div className="post-content">
-                      <p>{post.content}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="empty-posts">
-                <p>Nessun post ancora pubblicato.</p>
-              </div>
-            )}
-          </div>
-        </>
-      )}
+          {activeTab === "posts" && (
+            <div className="slide-in">
+              {userPosts.length === 0 ? (
+                <div className="empty-state">
+                  <div>📝</div>
+                  <p>Non hai ancora pubblicato nessun post.</p>
+                  <p>Vai alla home per creare il tuo primo post!</p>
+                </div>
+              ) : (
+                <div className="posts-grid">
+                  {userPosts.map((post) => (
+                    <ProfilePostCard key={post.id} post={post} onDelete={handleDeletePost} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

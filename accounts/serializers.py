@@ -27,3 +27,21 @@ class RegisterSerializer(serializers.ModelSerializer):
             email=validated_data['email'],
             password=validated_data['password']
         )
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer per l'aggiornamento del profilo utente
+    """
+
+    class Meta:
+        model = CustomUser
+        fields = ['bio']
+
+    def validate_bio(self, value):
+        if len(value) > 500:
+            raise serializers.ValidationError("Bio cannot exceed 500 characters.")
+        return value
+
+
+User = get_user_model()

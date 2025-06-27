@@ -24,7 +24,7 @@ const UserAvatar = ({ username, size = "md" }) => {
   const sizes = {
     sm: "30px",
     md: "45px",
-    lg: "60px"
+    lg: "60px",
   }
 
   return (
@@ -55,14 +55,17 @@ const FileUpload = ({ onFileChange, preview }) => {
     }
   }, [])
 
-  const handleDrop = useCallback((e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      onFileChange(e.dataTransfer.files[0])
-    }
-  }, [onFileChange])
+  const handleDrop = useCallback(
+    (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setDragActive(false)
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        onFileChange(e.dataTransfer.files[0])
+      }
+    },
+    [onFileChange],
+  )
 
   const handleChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -72,35 +75,31 @@ const FileUpload = ({ onFileChange, preview }) => {
 
   return (
     <div
-      className={`file-upload-container ${dragActive ? 'drag-active' : ''}`}
+      className={`file-upload-container ${dragActive ? "drag-active" : ""}`}
       onDragEnter={handleDrag}
       onDragLeave={handleDrag}
       onDragOver={handleDrag}
       onDrop={handleDrop}
     >
-      <input
-        type="file"
-        id="file-upload"
-        accept="image/*"
-        onChange={handleChange}
-        className="file-input"
-      />
+      <input type="file" id="file-upload" accept="image/*" onChange={handleChange} className="file-input" />
 
       <label htmlFor="file-upload" className="upload-label">
         {preview ? (
           <div className="image-preview">
-            <img src={URL.createObjectURL(preview)} alt="Preview" />
+            <img src={URL.createObjectURL(preview) || "/placeholder.svg"} alt="Preview" />
             <div className="change-image-btn">🔄 Cambia immagine</div>
           </div>
         ) : (
           <>
             <div className="upload-icon">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="currentColor"/>
+                <path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="currentColor" />
               </svg>
             </div>
             <div className="upload-text">
-              <p>Trascina un'immagine qui o <span>clicca per selezionare</span></p>
+              <p>
+                Trascina un'immagine qui o <span>clicca per selezionare</span>
+              </p>
               <small>Formati supportati: JPG, PNG (max 5MB)</small>
             </div>
           </>
@@ -152,7 +151,7 @@ const FollowButton = ({ username, userId, initialIsFollowing, token }) => {
     <button
       onClick={handleFollowToggle}
       disabled={loading}
-      className={`follow-btn ${isFollowing ? 'following' : ''} ${loading ? 'loading' : ''}`}
+      className={`follow-btn ${isFollowing ? "following" : ""} ${loading ? "loading" : ""}`}
     >
       {loading ? "⏳" : isFollowing ? "✓ Following" : "+ Follow"}
     </button>
@@ -170,7 +169,7 @@ const PostCard = ({
   commentText,
   setCommentText,
   isAdmin,
-  handleDeletePost
+  handleDeletePost,
 }) => {
   const [expanded, setExpanded] = useState(false)
   const [showComments, setShowComments] = useState(false)
@@ -202,10 +201,7 @@ const PostCard = ({
           {post.content}
         </p>
         {post.content.length > 150 && (
-          <button
-            className="read-more-btn"
-            onClick={() => setExpanded(!expanded)}
-          >
+          <button className="read-more-btn" onClick={() => setExpanded(!expanded)}>
             {expanded ? "Mostra meno" : "Leggi tutto"}
           </button>
         )}
@@ -213,34 +209,21 @@ const PostCard = ({
 
       {post.image && (
         <div className="post-image-container">
-          <img
-            src={post.image || "/placeholder.svg"}
-            alt="post"
-            className="post-image"
-          />
+          <img src={post.image || "/placeholder.svg"} alt="post" className="post-image" />
         </div>
       )}
 
       <div className="post-actions">
-        <button
-          onClick={() => handleLike(post.id)}
-          className="like-btn"
-        >
+        <button onClick={() => handleLike(post.id)} className="like-btn">
           ❤️ {post.likes_count || 0} Mi piace
         </button>
 
-        <button
-          className="comment-toggle-btn"
-          onClick={() => setShowComments(!showComments)}
-        >
+        <button className="comment-toggle-btn" onClick={() => setShowComments(!showComments)}>
           💬 {post.comments?.length || 0} Commenti
         </button>
 
         {isAdmin && (
-          <button
-            onClick={() => handleDeletePost(post.id)}
-            className="delete-btn"
-          >
+          <button onClick={() => handleDeletePost(post.id)} className="delete-btn">
             🗑️ Elimina
           </button>
         )}
@@ -283,13 +266,7 @@ const PostCard = ({
 }
 
 // Create Post Form Component
-const CreatePostForm = ({
-  newPostContent,
-  setNewPostContent,
-  newPostImage,
-  setNewPostImage,
-  handleCreatePost
-}) => {
+const CreatePostForm = ({ newPostContent, setNewPostContent, newPostImage, setNewPostImage, handleCreatePost }) => {
   const [imagePreview, setImagePreview] = useState(null)
 
   useEffect(() => {
@@ -324,18 +301,11 @@ const CreatePostForm = ({
           required
         />
 
-        <FileUpload
-          onFileChange={handleFileChange}
-          preview={imagePreview}
-        />
+        <FileUpload onFileChange={handleFileChange} preview={imagePreview} />
 
         <div className="form-actions">
           {imagePreview && (
-            <button
-              type="button"
-              onClick={removeImage}
-              className="remove-image-btn"
-            >
+            <button type="button" onClick={removeImage} className="remove-image-btn">
               ❌ Rimuovi immagine
             </button>
           )}
@@ -356,7 +326,11 @@ const NavigationButtons = ({ activeView, setActiveView, isAdmin }) => {
       ? [
           { key: "admin-users", label: "👥 Utenti", gradient: "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)" },
           { key: "admin-posts", label: "📝 Post", gradient: "linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)" },
-          { key: "admin-comments", label: "💬 Commenti", gradient: "linear-gradient(135deg, #10b981 0%, #14b8a6 100%)" },
+          {
+            key: "admin-comments",
+            label: "💬 Commenti",
+            gradient: "linear-gradient(135deg, #10b981 0%, #14b8a6 100%)",
+          },
         ]
       : []),
   ]
@@ -367,8 +341,8 @@ const NavigationButtons = ({ activeView, setActiveView, isAdmin }) => {
         <button
           key={key}
           onClick={() => setActiveView(key)}
-          className={`nav-btn ${activeView === key ? 'active' : ''}`}
-          style={{ background: activeView === key ? gradient : '' }}
+          className={`nav-btn ${activeView === key ? "active" : ""}`}
+          style={{ background: activeView === key ? gradient : "" }}
         >
           {label}
         </button>
@@ -378,16 +352,9 @@ const NavigationButtons = ({ activeView, setActiveView, isAdmin }) => {
 }
 
 // User List Component
-const UserList = ({
-  users,
-  loggedUserId,
-  followingStates,
-  token,
-  isAdmin,
-  handleDeleteUser
-}) => (
+const UserList = ({ users, loggedUserId, followingStates, token, isAdmin, handleDeleteUser }) => (
   <div className="user-list">
-    <h3>👥 {isAdmin ? 'Gestione Utenti' : 'Utenti Registrati'}</h3>
+    <h3>👥 {isAdmin ? "Gestione Utenti" : "Utenti Registrati"}</h3>
     <div className="users-container">
       {users.map((user) => (
         <div key={user.id} className="user-card">
@@ -397,18 +364,13 @@ const UserList = ({
               <span>{user.username}</span>
               {isAdmin && <span className="user-email">{user.email}</span>}
               {!isAdmin && (
-                <div className="follow-status">
-                  {followingStates[user.id] ? "Ti segue" : "Non ti segue"}
-                </div>
+                <div className="follow-status">{followingStates[user.id] ? "Ti segue" : "Non ti segue"}</div>
               )}
             </div>
           </div>
-          {user.id !== loggedUserId && (
-            isAdmin ? (
-              <button
-                onClick={() => handleDeleteUser(user.id)}
-                className="delete-btn"
-              >
+          {user.id !== loggedUserId &&
+            (isAdmin ? (
+              <button onClick={() => handleDeleteUser(user.id)} className="delete-btn">
                 🗑️ Elimina
               </button>
             ) : (
@@ -418,8 +380,7 @@ const UserList = ({
                 initialIsFollowing={followingStates[user.id] || false}
                 token={token}
               />
-            )
-          )}
+            ))}
         </div>
       ))}
     </div>
@@ -656,11 +617,10 @@ export default function HomePage() {
   // Initialize data
   useEffect(() => {
     if (token) {
-      Promise.all([fetchPosts(), fetchUsers(), fetchComments()])
-        .catch(err => {
-          console.error("Error initializing data:", err)
-          setError("Errore nel caricamento dei dati")
-        })
+      Promise.all([fetchPosts(), fetchUsers(), fetchComments()]).catch((err) => {
+        console.error("Error initializing data:", err)
+        setError("Errore nel caricamento dei dati")
+      })
     }
   }, [token])
 
@@ -799,6 +759,31 @@ export default function HomePage() {
             color: var(--gray);
             margin-top: 5px;
             font-size: 0.9rem;
+          }
+          
+          .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+          }
+          
+          .profile-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          
+          .profile-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
           }
           
           .logout-btn {
@@ -1405,6 +1390,11 @@ export default function HomePage() {
               gap: 15px;
             }
             
+            .header-actions {
+              width: 100%;
+              justify-content: space-between;
+            }
+            
             .post-actions {
               flex-wrap: wrap;
             }
@@ -1422,9 +1412,14 @@ export default function HomePage() {
           <h1>🌟 Social Network</h1>
           <p>Benvenuto, {payload?.username || "Utente"}!</p>
         </div>
-        <button onClick={handleLogout} className="logout-btn">
-          🚪 Logout
-        </button>
+        <div className="header-actions">
+          <button onClick={() => navigate("/profile")} className="profile-btn">
+            👤 Profilo
+          </button>
+          <button onClick={handleLogout} className="logout-btn">
+            🚪 Logout
+          </button>
+        </div>
       </header>
 
       <div className="main-content">
@@ -1442,11 +1437,7 @@ export default function HomePage() {
 
         {/* Main Content */}
         <main className="content-area">
-          <NavigationButtons
-            activeView={activeView}
-            setActiveView={setActiveView}
-            isAdmin={isAdmin}
-          />
+          <NavigationButtons activeView={activeView} setActiveView={setActiveView} isAdmin={isAdmin} />
 
           {/* Feed View */}
           {activeView === "feed" && (
@@ -1491,7 +1482,13 @@ export default function HomePage() {
           {/* Admin Users View */}
           {isAdmin && activeView === "admin-users" && (
             <div className="admin-view fade-in">
-              <h2 style={{ background: "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              <h2
+                style={{
+                  background: "linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
                 👥 Gestione Utenti (Solo Admin)
               </h2>
               <div>
@@ -1504,10 +1501,7 @@ export default function HomePage() {
                         <span className="user-email">{user.email}</span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleDeleteUser(user.id)}
-                      className="delete-btn"
-                    >
+                    <button onClick={() => handleDeleteUser(user.id)} className="delete-btn">
                       🗑️ Elimina
                     </button>
                   </div>
@@ -1519,7 +1513,13 @@ export default function HomePage() {
           {/* Admin Posts View */}
           {isAdmin && activeView === "admin-posts" && (
             <div className="admin-view fade-in">
-              <h2 style={{ background: "linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              <h2
+                style={{
+                  background: "linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
                 📝 Gestione Post
               </h2>
               <div>
@@ -1529,10 +1529,7 @@ export default function HomePage() {
                       <span style={{ fontWeight: "700" }}>{post.author?.username || "Utente"}</span>
                       <span style={{ color: "var(--gray)" }}>: {post.content?.slice(0, 50)}...</span>
                     </div>
-                    <button
-                      onClick={() => handleDeletePost(post.id)}
-                      className="delete-btn"
-                    >
+                    <button onClick={() => handleDeletePost(post.id)} className="delete-btn">
                       🗑️ Elimina Post
                     </button>
                   </div>
@@ -1544,7 +1541,13 @@ export default function HomePage() {
           {/* Admin Comments View */}
           {isAdmin && activeView === "admin-comments" && (
             <div className="admin-view fade-in">
-              <h2 style={{ background: "linear-gradient(135deg, #10b981 0%, #14b8a6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              <h2
+                style={{
+                  background: "linear-gradient(135deg, #10b981 0%, #14b8a6 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
                 💬 Gestione Commenti
               </h2>
               <div>
@@ -1554,10 +1557,7 @@ export default function HomePage() {
                       <span style={{ fontWeight: "700" }}>{comment.author?.username || "Utente"}</span>
                       <span style={{ color: "var(--gray)" }}>: {comment.text}</span>
                     </div>
-                    <button
-                      onClick={() => handleDeleteComment(comment.id)}
-                      className="delete-btn"
-                    >
+                    <button onClick={() => handleDeleteComment(comment.id)} className="delete-btn">
                       🗑️ Elimina Commento
                     </button>
                   </div>
@@ -1568,7 +1568,5 @@ export default function HomePage() {
         </main>
       </div>
     </div>
-
   )
-
 }
