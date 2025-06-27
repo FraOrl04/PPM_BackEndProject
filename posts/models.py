@@ -21,7 +21,7 @@ class Like(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     class Meta:
-        unique_together = ('post', 'user')  # previene like duplicati
+        unique_together = ('post', 'user')
 
 
 from django.db import models
