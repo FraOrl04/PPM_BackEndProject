@@ -117,7 +117,7 @@ export default function ProfilePage() {
   // Fetch user profile
   const fetchProfile = async () => {
     try {
-      const response = await fetch("${BASE_URL}/api/accounts/profile/", {
+      const response = await fetch(`${BASE_URL}/api/accounts/profile/`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!response.ok) throw new Error("Errore nel caricamento del profilo")
@@ -133,7 +133,7 @@ export default function ProfilePage() {
   // Fetch user posts
   const fetchUserPosts = async () => {
     try {
-      const response = await fetch("${BASE_URL}/api/posts/my-posts/", {
+      const response = await fetch(`${BASE_URL}/api/posts/my-posts/`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!response.ok) throw new Error("Errore nel caricamento dei post")
@@ -155,7 +155,7 @@ export default function ProfilePage() {
       const updateData = { bio: editForm.bio }
 
       // Update bio
-      const response = await fetch("${BASE_URL}/api/accounts/profile/", {
+      const response = await fetch(`${BASE_URL}/api/accounts/profile/`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -172,7 +172,7 @@ export default function ProfilePage() {
           throw new Error("Le password non coincidono")
         }
 
-        const passwordResponse = await fetch("${BASE_URL}/api/accounts/change-password/", {
+        const passwordResponse = await fetch(`${BASE_URL}/api/accounts/change-password/`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

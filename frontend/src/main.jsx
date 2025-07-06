@@ -8,4 +8,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>,
 );
 
-export const BASE_URL = "url";
+export const BASE_URL = "http://localhost:8000";

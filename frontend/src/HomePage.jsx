@@ -437,7 +437,7 @@ export default function HomePage() {
   // Fetch functions
   const fetchPosts = async () => {
     try {
-      const response = await fetch("${BASE_URL}/api/posts/", {
+      const response = await fetch(`${BASE_URL}/api/posts/`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!response.ok) throw new Error("Errore nel recupero dei post")
@@ -453,7 +453,7 @@ export default function HomePage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch("${BASE_URL}/api/accounts/", {
+      const response = await fetch(`${BASE_URL}/api/accounts/`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!response.ok) throw new Error("Errore nel recupero utenti")
@@ -473,7 +473,7 @@ export default function HomePage() {
   const fetchComments = async () => {
     if (!isAdmin) return
     try {
-      const response = await fetch("${BASE_URL}/api/comments/", {
+      const response = await fetch(`${BASE_URL}/api/comments/`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!response.ok) throw new Error("Errore nel caricamento commenti")
@@ -494,7 +494,7 @@ export default function HomePage() {
     }
 
     try {
-      const response = await fetch("${BASE_URL}/api/posts/", {
+      const response = await fetch(`${BASE_URL}/api/posts/`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -512,7 +512,7 @@ export default function HomePage() {
   // Like functionality
   const handleLike = async (postId) => {
     try {
-      const response = await fetch("${BASE_URL}/api/likes/", {
+      const response = await fetch(`${BASE_URL}/api/likes/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -534,7 +534,7 @@ export default function HomePage() {
     if (!comment) return
 
     try {
-      const response = await fetch("${BASE_URL}/api/comments/", {
+      const response = await fetch(`${BASE_URL}/api/comments/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

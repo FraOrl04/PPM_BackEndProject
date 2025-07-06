@@ -31,7 +31,7 @@ export default function AuthPage() {
     setError(null)
 
     try {
-      const response = await fetch("${BASE_URL}/api/accounts/token/", {
+      const response = await fetch(`${BASE_URL}/api/accounts/token/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -68,7 +68,7 @@ export default function AuthPage() {
     setError(null)
 
     try {
-      const response = await fetch("${BASE_URL}/api/accounts/register/", {
+      const response = await fetch(`${BASE_URL}/api/accounts/register/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
