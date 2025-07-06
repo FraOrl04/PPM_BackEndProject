@@ -1,13 +1,10 @@
 
 {
   "build": {
-    "env": {
-      "PYTHONUNBUFFERED": "1"
-    },
     "builder": "NIXPACKS",
-    "buildCommand": "pip install -r requirements.txt"
+    "buildCommand": "pip install -r requirements.txt && python manage.py migrate"
   },
   "start": {
-    "cmd": "gunicorn PPM_BackEnd_Project.wsgi:application --bind 0.0.0.0:$PORT"
+    "cmd": "gunicorn SocialMediaAPI.wsgi:application --bind 0.0.0.0:$PORT"
   }
 }
