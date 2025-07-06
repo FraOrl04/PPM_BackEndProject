@@ -8,4 +8,4 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>,
 );
 
-export const BASE_URL = "http://localhost:8000";
+export const BASE_URL = "https://ppmbackendproject-production.up.railway.app";
