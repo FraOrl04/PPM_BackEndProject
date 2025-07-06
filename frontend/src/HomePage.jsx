@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
+import { BASE_URL } from './main.jsx';
 
 // Loading Spinner Component
 const LoadingSpinner = () => (
@@ -124,13 +125,13 @@ const FollowButton = ({ username, userId, initialIsFollowing, token }) => {
       }
 
       if (isFollowing) {
-        await fetch(`http://localhost:8000/api/accounts/follow/${username}/`, {
+        await fetch(`${BASE_URL}/api/accounts/follow/${username}/`, {
           method: "DELETE",
           ...config,
         })
         setIsFollowing(false)
       } else {
-        await fetch(`http://localhost:8000/api/accounts/follow/${username}/`, {
+        await fetch(`${BASE_URL}/api/accounts/follow/${username}/`, {
           method: "POST",
           body: JSON.stringify({}),
           headers: {
@@ -436,7 +437,7 @@ export default function HomePage() {
   // Fetch functions
   const fetchPosts = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/posts/", {
+      const response = await fetch("${BASE_URL}/api/posts/", {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!response.ok) throw new Error("Errore nel recupero dei post")
@@ -452,7 +453,7 @@ export default function HomePage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/accounts/", {
+      const response = await fetch("${BASE_URL}/api/accounts/", {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!response.ok) throw new Error("Errore nel recupero utenti")
@@ -472,7 +473,7 @@ export default function HomePage() {
   const fetchComments = async () => {
     if (!isAdmin) return
     try {
-      const response = await fetch("http://localhost:8000/api/comments/", {
+      const response = await fetch("${BASE_URL}/api/comments/", {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!response.ok) throw new Error("Errore nel caricamento commenti")
@@ -493,7 +494,7 @@ export default function HomePage() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/posts/", {
+      const response = await fetch("${BASE_URL}/api/posts/", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -511,7 +512,7 @@ export default function HomePage() {
   // Like functionality
   const handleLike = async (postId) => {
     try {
-      const response = await fetch("http://localhost:8000/api/likes/", {
+      const response = await fetch("${BASE_URL}/api/likes/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -533,7 +534,7 @@ export default function HomePage() {
     if (!comment) return
 
     try {
-      const response = await fetch("http://localhost:8000/api/comments/", {
+      const response = await fetch("${BASE_URL}/api/comments/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -555,7 +556,7 @@ export default function HomePage() {
     if (!window.confirm("Vuoi davvero eliminare questo utente?")) return
 
     try {
-      const response = await fetch(`http://localhost:8000/api/accounts/admin-users/${userId}/`, {
+      const response = await fetch(`${BASE_URL}/api/accounts/admin-users/${userId}/`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -575,7 +576,7 @@ export default function HomePage() {
     if (!window.confirm("Vuoi davvero eliminare questo post?")) return
 
     try {
-      const response = await fetch(`http://localhost:8000/api/admin-posts/${postId}/`, {
+      const response = await fetch(`${BASE_URL}/api/admin-posts/${postId}/`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -593,7 +594,7 @@ export default function HomePage() {
     if (!window.confirm("Vuoi davvero eliminare questo commento?")) return
 
     try {
-      const response = await fetch(`http://localhost:8000/api/comments/${commentId}/`, {
+      const response = await fetch(`${BASE_URL}/api/comments/${commentId}/`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       })

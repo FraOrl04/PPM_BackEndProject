@@ -7,3 +7,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>,
 );
+
+export const BASE_URL = "url";
