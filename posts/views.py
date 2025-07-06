@@ -43,6 +43,17 @@ class LikeViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(like)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    def destroy(self, request, *args, **kwargs):
+        post_id = request.data.get('post')
+        user = request.user
+
+        try:
+            like = Like.objects.get(post_id=post_id, user=user)
+            like.delete()
+            return Response({'detail': 'Like removed.'}, status=status.HTTP_204_NO_CONTENT)
+        except Like.DoesNotExist:
+            return Response({'detail': 'Like not found.'}, status=status.HTTP_404_NOT_FOUND)
+
 class AdminPostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
     serializer_class = PostSerializer
