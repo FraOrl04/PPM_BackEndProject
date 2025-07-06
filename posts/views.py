@@ -6,11 +6,13 @@ from .serializers import PostSerializer, CommentSerializer, LikeSerializer
 from .permissions import IsAuthorOrReadOnly
 from .permissions import IsAuthorOrAdmin
 from .permissions import IsAdminUser
-
+from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly, IsAuthorOrAdmin]
+    parser_classes = [MultiPartParser, FormParser]
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -35,7 +37,6 @@ class LikeViewSet(viewsets.ModelViewSet):
         post_id = request.data.get('post')
         user = request.user
 
-        # evita duplicazione del like
         if Like.objects.filter(post_id=post_id, user=user).exists():
             return Response({'detail': 'You already liked this post.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -43,16 +44,21 @@ class LikeViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(like)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def destroy(self, request, *args, **kwargs):
-        post_id = kwargs.get('pk')  # oppure 'post_id' a seconda della route
+    @action(detail=False, methods=['delete'], url_path='remove')
+    def remove_like(self, request):
+        post_id = request.query_params.get('post')
         user = request.user
-
+        if not post_id:
+            return Response({'detail': 'Post id is required'}, status=status.HTTP_400_BAD_REQUEST)
         try:
             like = Like.objects.get(post_id=post_id, user=user)
             like.delete()
             return Response({'detail': 'Like removed.'}, status=status.HTTP_204_NO_CONTENT)
         except Like.DoesNotExist:
             return Response({'detail': 'Like not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
 
 
 class AdminPostViewSet(viewsets.ModelViewSet):
