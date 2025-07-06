@@ -44,7 +44,7 @@ class LikeViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def destroy(self, request, *args, **kwargs):
-        post_id = request.data.get('post')
+        post_id = kwargs.get('pk')  # oppure 'post_id' a seconda della route
         user = request.user
 
         try:
@@ -53,6 +53,7 @@ class LikeViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Like removed.'}, status=status.HTTP_204_NO_CONTENT)
         except Like.DoesNotExist:
             return Response({'detail': 'Like not found.'}, status=status.HTTP_404_NOT_FOUND)
+
 
 class AdminPostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
