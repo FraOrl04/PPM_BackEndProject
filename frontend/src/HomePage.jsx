@@ -527,6 +527,21 @@ export default function HomePage() {
       alert("Errore di rete nel mettere like")
     }
   }
+const handleUnlike = async (postId) => {
+  try {
+    const response = await fetch(`${BASE_URL}/api/likes/remove/?post=${postId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (!response.ok) throw new Error("Errore nel togliere like");
+    fetchPosts(); // aggiorna i post
+  } catch (error) {
+    console.error(error);
+    alert("Errore di rete nel togliere like");
+  }
+};
 
   // Comment functionality
   const handleCommentSubmit = async (postId) => {
