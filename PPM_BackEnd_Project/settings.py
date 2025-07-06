@@ -125,8 +125,8 @@ USE_I18N = True
 USE_TZ = True
 
 CORS_ALLOWED_ORIGINS = [
-    'https://api-social-network.up.railway.app/',  # il tuo frontend su Railway
-    'http://localhost:5173/',                      # per lo sviluppo in locale con Vite
+    'http://localhost:5173',
+    'https://api-social-network.up.railway.app',
 ]
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
