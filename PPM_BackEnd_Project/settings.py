@@ -26,7 +26,9 @@ SECRET_KEY = 'django-insecure-c6=vsjn_^ti%gxd@&s%c%!7^p$td%0&%0(^ps-^f!v*%8ji#7l
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '*'
+]
 
 
 # Application definition
@@ -135,10 +137,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # per React
-    "http://localhost:5175",  # per Vite
-]
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
