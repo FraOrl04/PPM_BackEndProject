@@ -13,6 +13,8 @@ function App() {
         <Route path="/register" element={<AuthPage />} />
         <Route path="/login" element={<AuthPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+
+          <Route path="/user/:username" element={<UserProfilePage />} />
         <Route
           path="/home"
           element={
@@ -29,7 +31,7 @@ function App() {
             </PrivateRoute>
           }
         />
-          <Route path="/user/:username" element={<UserProfilePage />} />
+// In App.jsx o dove definisci le route
       </Routes>
     </Router>
   )
