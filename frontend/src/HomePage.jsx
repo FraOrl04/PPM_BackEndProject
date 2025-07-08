@@ -45,6 +45,7 @@ const UserAvatar = ({ username, size = "md" }) => {
 // File Upload Component
 const FileUpload = ({ onFileChange, preview }) => {
   const [dragActive, setDragActive] = useState(false)
+  const [selectedFile, setSelectedFile] = useState(null)
 
   const handleDrag = useCallback((e) => {
     e.preventDefault()
@@ -62,15 +63,27 @@ const FileUpload = ({ onFileChange, preview }) => {
       e.stopPropagation()
       setDragActive(false)
       if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-        onFileChange(e.dataTransfer.files[0])
+        const file = e.dataTransfer.files[0]
+        if (file.size > 5 * 1024 * 1024) {
+          alert("L'immagine è troppo grande (max 5MB)")
+          return
+        }
+        setSelectedFile(file)
+        onFileChange(file)
       }
     },
-    [onFileChange],
+    [onFileChange]
   )
 
   const handleChange = (e) => {
     if (e.target.files && e.target.files[0]) {
-      onFileChange(e.target.files[0])
+      const file = e.target.files[0]
+      if (file.size > 5 * 1024 * 1024) {
+        alert("L'immagine è troppo grande (max 5MB)")
+        return
+      }
+      setSelectedFile(file)
+      onFileChange(file)
     }
   }
 
@@ -82,12 +95,18 @@ const FileUpload = ({ onFileChange, preview }) => {
       onDragOver={handleDrag}
       onDrop={handleDrop}
     >
-      <input type="file" id="file-upload" accept="image/*" onChange={handleChange} className="file-input" />
+      <input
+        type="file"
+        id="file-upload"
+        accept="image/*"
+        onChange={handleChange}
+        className="file-input"
+      />
 
       <label htmlFor="file-upload" className="upload-label">
-        {preview ? (
+        {selectedFile ? (
           <div className="image-preview">
-            <img src={URL.createObjectURL(preview) || "/placeholder.svg"} alt="Preview" />
+            <img src={URL.createObjectURL(selectedFile)} alt="Preview" />
             <div className="change-image-btn">🔄 Cambia immagine</div>
           </div>
         ) : (
@@ -210,7 +229,7 @@ const PostCard = ({
 
       {post.image && (
         <div className="post-image-container">
-   <img src={post.image || "/placeholder.svg"} alt="post" className="post-image" />
+          <img src={post.image} alt="post" className="post-image" />
         </div>
       )}
 
@@ -268,27 +287,12 @@ const PostCard = ({
 
 // Create Post Form Component
 const CreatePostForm = ({ newPostContent, setNewPostContent, newPostImage, setNewPostImage, handleCreatePost }) => {
-  const [imagePreview, setImagePreview] = useState(null)
-
-  useEffect(() => {
-    if (newPostImage) {
-      setImagePreview(newPostImage)
-    } else {
-      setImagePreview(null)
-    }
-  }, [newPostImage])
-
   const handleFileChange = (file) => {
-    if (file.size > 5 * 1024 * 1024) {
-      alert("L'immagine è troppo grande (max 5MB)")
-      return
-    }
     setNewPostImage(file)
   }
 
   const removeImage = () => {
     setNewPostImage(null)
-    setImagePreview(null)
   }
 
   return (
@@ -302,10 +306,13 @@ const CreatePostForm = ({ newPostContent, setNewPostContent, newPostImage, setNe
           required
         />
 
-        <FileUpload onFileChange={handleFileChange} preview={imagePreview} />
+        <FileUpload
+          onFileChange={handleFileChange}
+          preview={newPostImage}
+        />
 
         <div className="form-actions">
-          {imagePreview && (
+          {newPostImage && (
             <button type="button" onClick={removeImage} className="remove-image-btn">
               ❌ Rimuovi immagine
             </button>
@@ -390,7 +397,6 @@ const UserList = ({ users, loggedUserId, followingStates, token, isAdmin, handle
 
 // Main App Component
 export default function HomePage() {
-  // State management
   const [posts, setPosts] = useState([])
   const [users, setUsers] = useState([])
   const [comments, setComments] = useState([])
@@ -406,12 +412,10 @@ export default function HomePage() {
   const location = useLocation()
   const token = localStorage.getItem("access")
 
-  // User info from token
   const payload = token ? JSON.parse(atob(token.split(".")[1])) : null
   const loggedUserId = payload?.user_id
   const isAdmin = payload?.is_staff
 
-  // Set initial view based on route
   useEffect(() => {
     if (location.pathname === "/admin" && isAdmin) {
       setActiveView("admin-users")
@@ -420,7 +424,6 @@ export default function HomePage() {
     }
   }, [location.pathname, isAdmin])
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (!token) {
       navigate("/")
@@ -434,7 +437,6 @@ export default function HomePage() {
     }
   }, [token, navigate, location.pathname, isAdmin])
 
-  // Fetch functions
   const fetchPosts = async () => {
     try {
       const response = await fetch(`${BASE_URL}/api/posts/`, {
@@ -484,7 +486,6 @@ export default function HomePage() {
     }
   }
 
-  // Post creation
   const handleCreatePost = async (e) => {
     e.preventDefault()
     const formData = new FormData()
@@ -509,7 +510,6 @@ export default function HomePage() {
     }
   }
 
-  // Like functionality
   const handleLike = async (postId) => {
     try {
       const response = await fetch(`${BASE_URL}/api/likes/`, {
@@ -527,25 +527,7 @@ export default function HomePage() {
       alert("Errore di rete nel mettere like")
     }
   }
-const handleUnlike = async (postId) => {
-  try {
-    const response = await fetch(`${BASE_URL}/api/likes/remove/?post=${postId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    if (!response.ok) {
-      const data = await response.json();
-      alert(data.detail || "Errore nel togliere like");
-      return;
-    }
-    fetchPosts();
-  } catch (error) {
-    console.error(error);
-    alert("Errore di rete nel togliere like");
-  }
-};
 
-  // Comment functionality
   const handleCommentSubmit = async (postId) => {
     const comment = commentText[postId]?.trim()
     if (!comment) return
@@ -568,7 +550,6 @@ const handleUnlike = async (postId) => {
     }
   }
 
-  // Admin functions
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("Vuoi davvero eliminare questo utente?")) return
 
@@ -632,7 +613,6 @@ const handleUnlike = async (postId) => {
     navigate("/")
   }
 
-  // Initialize data
   useEffect(() => {
     if (token) {
       Promise.all([fetchPosts(), fetchUsers(), fetchComments()]).catch((err) => {
