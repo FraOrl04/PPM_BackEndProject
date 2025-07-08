@@ -30,3 +30,14 @@ React
 
 In Railway è stato usato un databaser PostgreSQL
 
+api-social-network.up.railway.app (link al frontend)
+ppmbackendproject-production.up.railway.app (link al backend)
+
+    Come iniziare
+1 accedi al frontend tramite il link api-social-network.up.railway.app
+successivament ecrea un account o accedi con le credenziali di un utente esistente per il super user usa le credenziali:
+   - username: admin
+   - password: 12345
+   - per gli altri utenti puoi crearne uno nuovo o usare le credenziali di un utente esistente
+successivamente pubblica un post, aggiungi un commento e metti like al post.
+e aggiungi una bio al profilo
