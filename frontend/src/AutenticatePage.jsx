@@ -1,4 +1,4 @@
-"use client"
+
 import { BASE_URL } from './main.jsx';
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
