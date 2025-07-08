@@ -991,6 +991,7 @@ export default function ProfilePage() {
                   <div>📝</div>
                   <p>Non hai ancora pubblicato nessun post.</p>
                   <p>Vai alla home per creare il tuo primo post!</p>
+
                 </div>
               ) : (
                 <div className="posts-grid">

@@ -12,6 +12,7 @@ function App() {
         <Route path="/" element={<AuthPage />} />
         <Route path="/register" element={<AuthPage />} />
         <Route path="/login" element={<AuthPage />} />
+
           <Route path="/profile" element={<ProfilePage />} />
         <Route
           path="/home"

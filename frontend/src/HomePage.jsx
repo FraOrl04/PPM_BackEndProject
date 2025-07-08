@@ -1568,6 +1568,7 @@ export default function HomePage() {
                       <UserAvatar username={user.username} onClick={() => navigate(`/user/${user.username}`)} />
                       <div>
                         <span
+
                           onClick={() => navigate(`/user/${user.username}`)}
                           style={{ cursor: "pointer" }}
                           title={`Visualizza profilo di @${user.username}`}

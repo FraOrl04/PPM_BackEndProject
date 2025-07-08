@@ -661,6 +661,7 @@ const styles = {
     marginTop: "20px",
   },
   feature: {
+
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
