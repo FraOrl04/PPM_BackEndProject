@@ -210,11 +210,7 @@ const PostCard = ({
 
       {post.image && (
         <div className="post-image-container">
-         <img
-          src={post.image ? `${BASE_URL}${post.image}` : "/placeholder.svg"}
-          alt="post"
-          className="post-image"
-        />
+   <img src={post.image || "/placeholder.svg"} alt="post" className="post-image" />
         </div>
       )}
 
