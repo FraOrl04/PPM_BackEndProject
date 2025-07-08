@@ -1,9 +1,9 @@
-from rest_framework import generics, viewsets
+from rest_framework import generics, viewsets, status
 
 from .models import CustomUser
 from .serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer,ProfileUpdateSerializer
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
