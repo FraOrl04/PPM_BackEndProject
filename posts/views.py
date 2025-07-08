@@ -9,6 +9,8 @@ from .permissions import IsAdminUser
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.contrib.auth import get_user_model
+from rest_framework import status
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
     serializer_class = PostSerializer
@@ -21,6 +23,17 @@ class PostViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='my-posts')
     def my_posts(self, request):
         user = request.user
+        queryset = self.get_queryset().filter(author=user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='user/(?P<username>[^/.]+)')
+    def user_posts(self, request, username=None):
+        User = get_user_model()
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
         queryset = self.get_queryset().filter(author=user)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

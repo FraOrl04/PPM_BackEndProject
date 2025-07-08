@@ -3,7 +3,7 @@ import AuthPage from "./AutenticatePage"
 import HomePage  from "./HomePage"
 import PrivateRoute from "./PrivateRoute.jsx"
 import ProfilePage  from "./ProfilePage.jsx";
-
+import UserProfilePage from './user-profile-page.jsx';
 
 function App() {
   return (
@@ -29,6 +29,7 @@ function App() {
             </PrivateRoute>
           }
         />
+          <Route path="/user/:username" element={<UserProfilePage />} />
       </Routes>
     </Router>
   )

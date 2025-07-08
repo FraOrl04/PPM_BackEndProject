@@ -533,8 +533,17 @@ const handleUnlike = async (postId) => {
       method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
+    if (response.status === 204) {
+      // Like rimosso con successo, nessun body da leggere
+      fetchPosts();
+      return;
+    }
     if (!response.ok) {
-      const data = await response.json();
+      // Prova a leggere il messaggio di errore solo se c'è un body
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {}
       alert(data.detail || "Errore nel togliere like");
       return;
     }
@@ -544,7 +553,6 @@ const handleUnlike = async (postId) => {
     alert("Errore di rete nel togliere like");
   }
 };
-
   // Comment functionality
   const handleCommentSubmit = async (postId) => {
     const comment = commentText[postId]?.trim()
