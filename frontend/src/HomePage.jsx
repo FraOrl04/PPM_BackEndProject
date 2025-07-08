@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
-import { BASE_URL } from "./main.jsx"
+import { BASE_URL } from './main.jsx';
 
 // Loading Spinner Component
 const LoadingSpinner = () => (
@@ -21,7 +21,7 @@ const ErrorDisplay = ({ error }) => (
 )
 
 // User Avatar Component
-const UserAvatar = ({ username, size = "md", onClick }) => {
+const UserAvatar = ({ username, size = "md" }) => {
   const sizes = {
     sm: "30px",
     md: "45px",
@@ -35,10 +35,7 @@ const UserAvatar = ({ username, size = "md", onClick }) => {
         width: sizes[size],
         height: sizes[size],
         background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)",
-        cursor: onClick ? "pointer" : "default",
       }}
-      onClick={onClick}
-      title={onClick ? `Visualizza profilo di @${username}` : ""}
     >
       {username?.charAt(0).toUpperCase() || "U"}
     </div>
@@ -174,30 +171,17 @@ const PostCard = ({
   setCommentText,
   isAdmin,
   handleDeletePost,
-  navigate,
 }) => {
   const [expanded, setExpanded] = useState(false)
   const [showComments, setShowComments] = useState(false)
-
-  const handleUsernameClick = (username) => {
-    if (username) {
-      navigate(`/user/${username}`)
-    }
-  }
 
   return (
     <div className="post-card">
       <div className="post-header">
         <div className="user-info">
-          <UserAvatar username={post.author?.username} onClick={() => handleUsernameClick(post.author?.username)} />
+          <UserAvatar username={post.author?.username} />
           <div>
-            <h4
-              onClick={() => handleUsernameClick(post.author?.username)}
-              style={{ cursor: "pointer" }}
-              title={`Visualizza profilo di @${post.author?.username}`}
-            >
-              {post.author?.username || "Utente sconosciuto"}
-            </h4>
+            <h4>{post.author?.username || "Utente sconosciuto"}</h4>
             <p className="post-time">
               {post.created_at ? new Date(post.created_at).toLocaleString("it-IT") : "Data non disponibile"}
             </p>
@@ -226,7 +210,7 @@ const PostCard = ({
 
       {post.image && (
         <div className="post-image-container">
-          <img src={post.image || "/placeholder.svg"} alt="post" className="post-image" />
+   <img src={post.image || "/placeholder.svg"} alt="post" className="post-image" />
         </div>
       )}
 
@@ -252,18 +236,8 @@ const PostCard = ({
             {(post.comments || []).map((comment) => (
               <div key={comment.id} className="comment">
                 <div className="comment-header">
-                  <UserAvatar
-                    username={comment.author?.username}
-                    size="sm"
-                    onClick={() => handleUsernameClick(comment.author?.username)}
-                  />
-                  <span
-                    onClick={() => handleUsernameClick(comment.author?.username)}
-                    style={{ cursor: "pointer" }}
-                    title={`Visualizza profilo di @${comment.author?.username}`}
-                  >
-                    {comment.author?.username || "Anonimo"}
-                  </span>
+                  <UserAvatar username={comment.author?.username} size="sm" />
+                  <span>{comment.author?.username || "Anonimo"}</span>
                 </div>
                 <p>{comment.text}</p>
               </div>
@@ -379,54 +353,40 @@ const NavigationButtons = ({ activeView, setActiveView, isAdmin }) => {
 }
 
 // User List Component
-const UserList = ({ users, loggedUserId, followingStates, token, isAdmin, handleDeleteUser, navigate }) => {
-  const handleUsernameClick = (username) => {
-    if (username) {
-      navigate(`/user/${username}`)
-    }
-  }
-
-  return (
-    <div className="user-list">
-      <h3>👥 {isAdmin ? "Gestione Utenti" : "Utenti Registrati"}</h3>
-      <div className="users-container">
-        {users.map((user) => (
-          <div key={user.id} className="user-card">
-            <div className="user-info">
-              <UserAvatar username={user.username} onClick={() => handleUsernameClick(user.username)} />
-              <div>
-                <span
-                  onClick={() => handleUsernameClick(user.username)}
-                  style={{ cursor: "pointer" }}
-                  title={`Visualizza profilo di @${user.username}`}
-                >
-                  {user.username}
-                </span>
-                {isAdmin && <span className="user-email">{user.email}</span>}
-                {!isAdmin && (
-                  <div className="follow-status">{followingStates[user.id] ? "Ti segue" : "Non ti segue"}</div>
-                )}
-              </div>
+const UserList = ({ users, loggedUserId, followingStates, token, isAdmin, handleDeleteUser }) => (
+  <div className="user-list">
+    <h3>👥 {isAdmin ? "Gestione Utenti" : "Utenti Registrati"}</h3>
+    <div className="users-container">
+      {users.map((user) => (
+        <div key={user.id} className="user-card">
+          <div className="user-info">
+            <UserAvatar username={user.username} />
+            <div>
+              <span>{user.username}</span>
+              {isAdmin && <span className="user-email">{user.email}</span>}
+              {!isAdmin && (
+                <div className="follow-status">{followingStates[user.id] ? "Ti segue" : "Non ti segue"}</div>
+              )}
             </div>
-            {user.id !== loggedUserId &&
-              (isAdmin ? (
-                <button onClick={() => handleDeleteUser(user.id)} className="delete-btn">
-                  🗑️ Elimina
-                </button>
-              ) : (
-                <FollowButton
-                  username={user.username}
-                  userId={user.id}
-                  initialIsFollowing={followingStates[user.id] || false}
-                  token={token}
-                />
-              ))}
           </div>
-        ))}
-      </div>
+          {user.id !== loggedUserId &&
+            (isAdmin ? (
+              <button onClick={() => handleDeleteUser(user.id)} className="delete-btn">
+                🗑️ Elimina
+              </button>
+            ) : (
+              <FollowButton
+                username={user.username}
+                userId={user.id}
+                initialIsFollowing={followingStates[user.id] || false}
+                token={token}
+              />
+            ))}
+        </div>
+      ))}
     </div>
-  )
-}
+  </div>
+)
 
 // Main App Component
 export default function HomePage() {
@@ -567,33 +527,23 @@ export default function HomePage() {
       alert("Errore di rete nel mettere like")
     }
   }
-
-  const handleUnlike = async (postId) => {
-    try {
-      const response = await fetch(`${BASE_URL}/api/likes/`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (response.status === 204) {
-        // Like rimosso con successo, nessun body da leggere
-        fetchPosts()
-        return
-      }
-      if (!response.ok) {
-        // Prova a leggere il messaggio di errore solo se c'è un body
-        let data = {}
-        try {
-          data = await response.json()
-        } catch {}
-        alert(data.detail || "Errore nel togliere like")
-        return
-      }
-      fetchPosts()
-    } catch (error) {
-      console.error(error)
-      alert("Errore di rete nel togliere like")
+const handleUnlike = async (postId) => {
+  try {
+    const response = await fetch(`${BASE_URL}/api/likes/remove/?post=${postId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) {
+      const data = await response.json();
+      alert(data.detail || "Errore nel togliere like");
+      return;
     }
+    fetchPosts();
+  } catch (error) {
+    console.error(error);
+    alert("Errore di rete nel togliere like");
   }
+};
 
   // Comment functionality
   const handleCommentSubmit = async (postId) => {
@@ -1500,7 +1450,6 @@ export default function HomePage() {
             token={token}
             isAdmin={isAdmin}
             handleDeleteUser={isAdmin ? handleDeleteUser : null}
-            navigate={navigate}
           />
         </aside>
 
@@ -1541,7 +1490,6 @@ export default function HomePage() {
                       setCommentText={setCommentText}
                       isAdmin={isAdmin}
                       handleDeletePost={handleDeletePost}
-                      navigate={navigate}
                     />
                   ))
                 )}
@@ -1565,15 +1513,9 @@ export default function HomePage() {
                 {users.map((user) => (
                   <div key={user.id} className="user-card fade-in">
                     <div className="user-info">
-                      <UserAvatar username={user.username} onClick={() => navigate(`/user/${user.username}`)} />
+                      <UserAvatar username={user.username} />
                       <div>
-                        <span
-                          onClick={() => navigate(`/user/${user.username}`)}
-                          style={{ cursor: "pointer" }}
-                          title={`Visualizza profilo di @${user.username}`}
-                        >
-                          {user.username}
-                        </span>
+                        <span>{user.username}</span>
                         <span className="user-email">{user.email}</span>
                       </div>
                     </div>
@@ -1602,13 +1544,7 @@ export default function HomePage() {
                 {posts.map((post) => (
                   <div key={post.id} className="user-card fade-in">
                     <div>
-                      <span
-                        style={{ fontWeight: "700", cursor: "pointer" }}
-                        onClick={() => navigate(`/user/${post.author?.username}`)}
-                        title={`Visualizza profilo di @${post.author?.username}`}
-                      >
-                        {post.author?.username || "Utente"}
-                      </span>
+                      <span style={{ fontWeight: "700" }}>{post.author?.username || "Utente"}</span>
                       <span style={{ color: "var(--gray)" }}>: {post.content?.slice(0, 50)}...</span>
                     </div>
                     <button onClick={() => handleDeletePost(post.id)} className="delete-btn">
@@ -1636,13 +1572,7 @@ export default function HomePage() {
                 {comments.map((comment) => (
                   <div key={comment.id} className="user-card fade-in">
                     <div>
-                      <span
-                        style={{ fontWeight: "700", cursor: "pointer" }}
-                        onClick={() => navigate(`/user/${comment.author?.username}`)}
-                        title={`Visualizza profilo di @${comment.author?.username}`}
-                      >
-                        {comment.author?.username || "Utente"}
-                      </span>
+                      <span style={{ fontWeight: "700" }}>{comment.author?.username || "Utente"}</span>
                       <span style={{ color: "var(--gray)" }}>: {comment.text}</span>
                     </div>
                     <button onClick={() => handleDeleteComment(comment.id)} className="delete-btn">
