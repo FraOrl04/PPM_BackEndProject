@@ -55,7 +55,7 @@ class LikeViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(like)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=False, methods=['delete'], url_path='', url_name='remove_like')
+    @action(detail=False, methods=['delete'], url_path='remove')
     def remove_like(self, request):
         post_id = request.query_params.get('post')
         user = request.user
@@ -67,6 +67,7 @@ class LikeViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Like removed.'}, status=status.HTTP_204_NO_CONTENT)
         except Like.DoesNotExist:
             return Response({'detail': 'Like not found.'}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 
