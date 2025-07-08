@@ -7,7 +7,9 @@ Supporta un sistema di autenticazione JWT, ruoli utente differenziati e un’arc
 
 Commenti: aggiungi e gestisci commenti ai post.
 
- Like: metti/togli like ai post (massimo uno per utente per post).
+ Like: metti like ai post (massimo uno per utente per post).
+Possiblità di inserire una biografia di un utente 
+sezione dedicata al profilo e alla sua modifica 
 
  Ruoli: utenti normali e admin, con permessi diversi.
  Super User: Admin 
@@ -25,3 +27,6 @@ Django REST Framework
 Simple JWT
 
 React 
+
+In Railway è stato usato un databaser PostgreSQL
+
