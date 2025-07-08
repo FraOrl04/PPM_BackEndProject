@@ -470,7 +470,7 @@ export default function HomePage() {
     if (location.pathname === "/admin" && !isAdmin) {
       alert("Accesso negato: non sei un amministratore")
       navigate("/home")
-      return
+
     }
   }, [token, navigate, location.pathname, isAdmin])
 
@@ -570,7 +570,7 @@ export default function HomePage() {
 
   const handleUnlike = async (postId) => {
     try {
-      const response = await fetch(`${BASE_URL}/api/likes/`, {
+      const response = await fetch(`${BASE_URL}/api/likes/remove/?post=${postId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       })
