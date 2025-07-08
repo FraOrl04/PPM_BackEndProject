@@ -1,5 +1,5 @@
 "use client"
-import { useParams } from "react-router-dom"
+
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { BASE_URL } from './main.jsx';
@@ -10,7 +10,6 @@ const LoadingSpinner = () => (
     <p>Caricamento profilo...</p>
   </div>
 )
-const { username } = useParams();
 
 // User Avatar Component
 const UserAvatar = ({ username, size = "lg" }) => {
@@ -117,13 +116,10 @@ export default function ProfilePage() {
 
   // Fetch user profile
   const fetchProfile = async () => {
-  try {
-    const url = username
-      ? `${BASE_URL}/api/accounts/${username}/`
-      : `${BASE_URL}/api/accounts/profile/`;
-    const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      const response = await fetch(`${BASE_URL}/api/accounts/profile/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       if (!response.ok) throw new Error("Errore nel caricamento del profilo")
       const data = await response.json()
       setProfile(data)
@@ -236,7 +232,7 @@ export default function ProfilePage() {
     if (token) {
       Promise.all([fetchProfile(), fetchUserPosts()])
     }
-  }, [token, username])
+  }, [token])
 
   if (loading) return <LoadingSpinner />
 
@@ -991,7 +987,6 @@ export default function ProfilePage() {
                   <div>📝</div>
                   <p>Non hai ancora pubblicato nessun post.</p>
                   <p>Vai alla home per creare il tuo primo post!</p>
-
                 </div>
               ) : (
                 <div className="posts-grid">

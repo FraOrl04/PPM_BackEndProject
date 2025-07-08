@@ -9,8 +9,6 @@ from .permissions import IsAdminUser
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.contrib.auth import get_user_model
-from rest_framework import status
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
     serializer_class = PostSerializer
@@ -26,8 +24,6 @@ class PostViewSet(viewsets.ModelViewSet):
         queryset = self.get_queryset().filter(author=user)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
-
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer

@@ -1,4 +1,4 @@
-
+"use client"
 import { BASE_URL } from './main.jsx';
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -661,7 +661,6 @@ const styles = {
     marginTop: "20px",
   },
   feature: {
-
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
