@@ -1,4 +1,4 @@
-"use client"
+
 
 import { useEffect, useState, useCallback } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
@@ -470,7 +470,7 @@ export default function HomePage() {
     if (location.pathname === "/admin" && !isAdmin) {
       alert("Accesso negato: non sei un amministratore")
       navigate("/home")
-
+      return
     }
   }, [token, navigate, location.pathname, isAdmin])
 
