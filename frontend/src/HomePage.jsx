@@ -531,12 +531,14 @@ const handleUnlike = async (postId) => {
   try {
     const response = await fetch(`${BASE_URL}/api/likes/remove/?post=${postId}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     });
-    if (!response.ok) throw new Error("Errore nel togliere like");
-    fetchPosts(); // aggiorna i post
+    if (!response.ok) {
+      const data = await response.json();
+      alert(data.detail || "Errore nel togliere like");
+      return;
+    }
+    fetchPosts();
   } catch (error) {
     console.error(error);
     alert("Errore di rete nel togliere like");

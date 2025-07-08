@@ -7,6 +7,7 @@ from .permissions import IsAuthorOrReadOnly
 from .permissions import IsAuthorOrAdmin
 from .permissions import IsAdminUser
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')
@@ -17,6 +18,12 @@ class PostViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
+    @action(detail=False, methods=['get'], url_path='my-posts')
+    def my_posts(self, request):
+        user = request.user
+        queryset = self.get_queryset().filter(author=user)
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
