@@ -176,13 +176,12 @@ export default function UserProfilePage() {
   }, [token, navigate])
 
   // Redirect if viewing own profile
-  useEffect(() => {
-    if (username === currentUsername) {
-      navigate("/profile")
-      return
-    }
-  }, [username, currentUsername, navigate])
-
+useEffect(() => {
+  if (username === currentUsername) {
+    navigate("/profile")
+    return
+  }
+}, [username, currentUsername, navigate])
   // Fetch user profile
   const fetchUserProfile = async () => {
     try {
