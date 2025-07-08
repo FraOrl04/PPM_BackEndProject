@@ -23,12 +23,20 @@ class PostSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     likes = LikeSerializer(many=True, read_only=True)
     likes_count = serializers.SerializerMethodField()
-    image = serializers.ImageField(use_url=True, required=False, allow_null=True)
+    image_url = serializers.SerializerMethodField()  # Nuovo campo
 
     class Meta:
         model = Post
-        fields = ['id', 'author', 'content', 'image', 'created_at', 'comments', 'likes', 'likes_count']
+        fields = ['id', 'author', 'content', 'image', 'image_url', 'created_at', 'comments', 'likes', 'likes_count']
         read_only_fields = ['author', 'created_at']
+        extra_kwargs = {
+            'image': {'write_only': True}  # Nasconde il campo image nella risposta
+        }
 
     def get_likes_count(self, obj):
         return obj.likes.count()
+
+    def get_image_url(self, obj):
+        if obj.image:
+            return self.context['request'].build_absolute_uri(obj.image.url)
+        return None
