@@ -3,7 +3,7 @@ import AuthPage from "./AutenticatePage"
 import HomePage  from "./HomePage"
 import PrivateRoute from "./PrivateRoute.jsx"
 import ProfilePage  from "./ProfilePage.jsx";
-import UserProfilePage from './UserProfilePage.jsx';
+import UserProfilePage from "./UserProfilePage.jsx"
 
 function App() {
   return (
@@ -13,7 +13,6 @@ function App() {
         <Route path="/register" element={<AuthPage />} />
         <Route path="/login" element={<AuthPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-
           <Route path="/user/:username" element={<UserProfilePage />} />
         <Route
           path="/home"

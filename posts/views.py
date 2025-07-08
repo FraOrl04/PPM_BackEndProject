@@ -27,16 +27,7 @@ class PostViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'], url_path='user/(?P<username>[^/.]+)')
-    def user_posts(self, request, username=None):
-        User = get_user_model()
-        try:
-            user = User.objects.get(username=username)
-        except User.DoesNotExist:
-            return Response({'detail': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
-        queryset = self.get_queryset().filter(author=user)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -64,7 +55,7 @@ class LikeViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(like)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=False, methods=['delete'], url_path='remove')
+    @action(detail=False, methods=['delete'], url_path='', url_name='remove_like')
     def remove_like(self, request):
         post_id = request.query_params.get('post')
         user = request.user
@@ -76,7 +67,6 @@ class LikeViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Like removed.'}, status=status.HTTP_204_NO_CONTENT)
         except Like.DoesNotExist:
             return Response({'detail': 'Like not found.'}, status=status.HTTP_404_NOT_FOUND)
-
 
 
 

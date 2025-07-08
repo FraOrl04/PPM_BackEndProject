@@ -231,9 +231,11 @@ const PostCard = ({
       )}
 
       <div className="post-actions">
-        <button onClick={() => handleLike(post.id)} className="like-btn">
-          ❤️ {post.likes_count || 0} Mi piace
-        </button>
+      <button onClick={() => handleLike(post.id, post.has_liked)} className="like-btn">
+        {post.has_liked ? "💔 Togli Like" : "❤️ Mi Piace"} {post.likes_count || 0}
+      </button>
+
+
 
         <button className="comment-toggle-btn" onClick={() => setShowComments(!showComments)}>
           💬 {post.comments?.length || 0} Commenti
@@ -550,50 +552,30 @@ export default function HomePage() {
   }
 
   // Like functionality
-  const handleLike = async (postId) => {
-    try {
-      const response = await fetch(`${BASE_URL}/api/likes/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ post: postId }),
-      })
-      if (!response.ok) throw new Error("Errore nel mettere like")
-      fetchPosts()
-    } catch (error) {
-      console.error(error)
-      alert("Errore di rete nel mettere like")
-    }
-  }
+const handleLike = async (postId, hasLiked) => {
+  try {
+    const method = hasLiked ? "DELETE" : "POST"
+    const url = `${BASE_URL}/api/likes/${hasLiked ? `?post=${postId}` : ""}`
 
-  const handleUnlike = async (postId) => {
-    try {
-      const response = await fetch(`${BASE_URL}/api/likes/remove/?post=${postId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      if (response.status === 204) {
-        // Like rimosso con successo, nessun body da leggere
-        fetchPosts()
-        return
-      }
-      if (!response.ok) {
-        // Prova a leggere il messaggio di errore solo se c'è un body
-        let data = {}
-        try {
-          data = await response.json()
-        } catch {}
-        alert(data.detail || "Errore nel togliere like")
-        return
-      }
-      fetchPosts()
-    } catch (error) {
-      console.error(error)
-      alert("Errore di rete nel togliere like")
+    const options = {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      ...(method === "POST" && { body: JSON.stringify({ post: postId }) }),
     }
+
+    const response = await fetch(url, options)
+    if (!response.ok) throw new Error("Errore nella gestione del like")
+
+    fetchPosts()
+  } catch (error) {
+    console.error(error)
+    alert("Errore di rete nel gestire il like")
   }
+}
+
 
   // Comment functionality
   const handleCommentSubmit = async (postId) => {
