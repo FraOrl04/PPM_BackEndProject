@@ -158,5 +158,6 @@ SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),   # default is 5 minutes
     'REFRESH_TOKEN_LIFETIME': timedelta(hours=1),      # default is 1 day
 }
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
