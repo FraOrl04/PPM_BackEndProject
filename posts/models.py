@@ -23,7 +23,3 @@ class Like(models.Model):
     class Meta:
         unique_together = ('post', 'user')
 
-
-from django.db import models
-
-# Create your models here.

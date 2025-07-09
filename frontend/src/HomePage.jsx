@@ -510,23 +510,28 @@ export default function HomePage() {
     }
   }
 
-  const handleLike = async (postId) => {
-    try {
-      const response = await fetch(`${BASE_URL}/api/likes/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ post: postId }),
-      })
-      if (!response.ok) throw new Error("Errore nel mettere like")
-      fetchPosts()
-    } catch (error) {
-      console.error(error)
-      alert("Errore di rete nel mettere like")
+const handleLike = async (postId) => {
+  try {
+    const response = await fetch(`${BASE_URL}/api/likes/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ post: postId }),
+    });
+
+    if (!response.ok && response.status !== 204) {
+      throw new Error("Errore nel mettere/rimuovere like");
     }
+
+    fetchPosts(); // aggiorna la lista dei post (e dei like)
+  } catch (error) {
+    console.error(error);
+    alert("Errore di rete nel mettere/rimuovere like");
   }
+};
+
 
   const handleCommentSubmit = async (postId) => {
     const comment = commentText[postId]?.trim()
