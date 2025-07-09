@@ -49,16 +49,14 @@ class LikeViewSet(viewsets.ModelViewSet):
         post_id = request.data.get('post')
         user = request.user
 
-        existing_like = Like.objects.filter(post_id=post_id, user=user).first()
-        if existing_like:
-            existing_like.delete()
-            return Response({'detail': 'Like rimosso'}, status=status.HTTP_204_NO_CONTENT)
-
-        like = Like.objects.create(post_id=post_id, user=user)
-        post = Post.objects.get(id=post_id)
-
-        serializer = self.get_serializer(like)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        try:
+            like = Like.objects.get(post_id=post_id, user=user)
+            like.delete()
+            return Response({'detail': 'Like removed.'}, status=status.HTTP_204_NO_CONTENT)
+        except Like.DoesNotExist:
+            like = Like.objects.create(post_id=post_id, user=user)
+            serializer = self.get_serializer(like)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 
