@@ -1,18 +1,18 @@
-📝 Descrizione
-PPM_BackEnd_Project è un backend RESTful costruito con Django e Django REST Framework, pensato per gestire post, commenti e like in un'applicazione social o community.
-Supporta un sistema di autenticazione JWT, ruoli utente differenziati e un’architettura pronta per essere collegata a un frontend React (non incluso in questo repo).
+
+ho costruito un API con un backend RESTful costruito con Django REST Framework, pensato per gestire post, commenti e like in un'applicazione social .
+Supporta un sistema di autenticazione JWT, ruoli utente differenziati.
 
  Funzionalità principali
  Post: crea, visualizza, modifica e cancella post.
 
 Commenti: aggiungi e gestisci commenti ai post.
 
- Like: metti like ai post (massimo uno per utente per post).
+ Like: metti/rimuovere like ai post (massimo uno per utente per post).
 Possiblità di inserire una biografia di un utente 
 sezione dedicata al profilo e alla sua modifica 
 
  Ruoli: utenti normali e admin, con permessi diversi.
- Super User: Admin 
+ Super User: admin 
  Password : 12345
 
  Autenticazione JWT: per interazioni sicure tramite token.
@@ -20,7 +20,6 @@ sezione dedicata al profilo e alla sua modifica
  Stack Tecnologico
 Python 3.x
 
-Django
 
 Django REST Framework
 
@@ -40,4 +39,4 @@ successivament ecrea un account o accedi con le credenziali di un utente esisten
    - password: 12345
    - per gli altri utenti puoi crearne uno nuovo o usare le credenziali di un utente esistente
 successivamente pubblica un post, aggiungi un commento e metti like al post.
-e aggiungi una bio al profilo
+e aggiungi una bio al profilo, inoltr einizia a seguire altri utenti
